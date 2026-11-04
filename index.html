@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health & Body AI - ATL Project</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            /* Colorful Animated Gradient Background */
+            background: linear-gradient(135deg, #ff7e5f, #feb47b, #6a11cb, #2575fc, #00c6ff);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 440px;
+            height: 680px;
+            background: rgba(255, 255, 255, 0.95); /* Slightly transparent white card */
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .reset-btn {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.6);
+            color: white;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .reset-btn:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+        .chat-disclaimer {
+            background-color: #fff3cd;
+            color: #856404;
+            font-size: 11px;
+            padding: 6px;
+            text-align: center;
+            border-bottom: 1px solid #ffeeba;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 25px;
+        }
+        .message {
+            max-width: 82%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.4;
+            white-space: pre-line;
+        }
+        .bot-message {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+        .user-message {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+        .typing-indicator {
+            font-style: italic;
+            color: #666;
+            font-size: 12px;
+            display: none;
+            padding: 0 15px 8px 15px;
+        }
+        .quick-chips {
+            display: flex;
+            gap: 6px;
+            padding: 8px 12px;
+            background-color: #f9f9f9;
+            overflow-x: auto;
+            border-top: 1px solid #eee;
+        }
+        .chip {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+        .chip:hover {
+            background-color: #bbdefb;
+        }
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+        .chat-input-area button {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 0 16px;
+            margin-left: 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .chat-input-area button:hover {
+            opacity: 0.9;
+        }
+        .watermark {
+            position: absolute;
+            bottom: 60px;
+            right: 12px;
+            font-size: 9px;
+            color: #888;
+            pointer-events: none;
+            letter-spacing: 0.3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <span>🫀 healthcare AI</span>
+            <button class="reset-btn" onclick="resetChat()">Reset</button>
+        </div>
+        <div class="chat-disclaimer">Disclaimer: Educational tool built by Sreehari!</div>
+       
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">Hi! I am your personal healthcare AI assistant. Ask me any question about calories, running, organs, or fitness!</div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">AI is typing...</div>
+
+        <!-- Tiny Watermark -->
+        <div class="watermark">Made by Sreehari MK • Class 8th A</div>
+
+        <!-- Quick Chips Bar with All Topics -->
+        <div class="quick-chips">
+            <div class="chip" onclick="sendPreset('Who made you?')">🤖 Who made you?</div>
+            <div class="chip" onclick="sendPreset('I ate 5 bananas and ran 4 km, how many calories did I burn?')">🍌 Banana & Run</div>
+            <div class="chip" onclick="sendPreset('What is neuroplasticity?')">🧠 Neuroplasticity</div>
+            <div class="chip" onclick="sendPreset('What is cognitive reserve?')">💡 Cognitive Reserve</div>
+            <div class="chip" onclick="sendPreset('What are mirror neurons?')">🪞 Mirror Neurons</div>
+            <div class="chip" onclick="sendPreset('What is the enteric nervous system?')">🦠 Second Brain</div>
+            <div class="chip" onclick="sendPreset('What is proprioception?')">🤸 Proprioception</div>
+            <div class="chip" onclick="sendPreset('What is vestibular system?')">⚖️ Vestibular</div>
+            <div class="chip" onclick="sendPreset('What is nociception?')">⚡ Pain Sensors</div>
+            <div class="chip" onclick="sendPreset('What is thermoregulation?')">🌡️ Thermoregulation</div>
+            <div class="chip" onclick="sendPreset('What is basal cell carcinoma?')">🛡️ Skin Cells</div>
+            <div class="chip" onclick="sendPreset('What is an enzyme?')">🧪 Enzymes</div>
+            <div class="chip" onclick="sendPreset('What is coenzyme?')">🧬 Coenzymes</div>
+            <div class="chip" onclick="sendPreset('What is amino acid?')">💪 Amino Acids</div>
+            <div class="chip" onclick="sendPreset('What is fatty acid?')">🥑 Fatty Acids</div>
+            <div class="chip" onclick="sendPreset('What is glycogen storage?')">🔋 Glycogen</div>
+            <div class="chip" onclick="sendPreset('What is gluconeogenesis?')">🍬 Gluconeogenesis</div>
+            <div class="chip" onclick="sendPreset('What is ketosis?')">🔥 Ketosis</div>
+            <div class="chip" onclick="sendPreset('What is oxidative phosphorylation?')">⚡ Oxidative Phos</div>
+            <div class="chip" onclick="sendPreset('What is anaerobic glycolysis?')">🏃 Anaerobic Glycolysis</div>
+            <div class="chip" onclick="sendPreset('What is fast glycolytic fiber?')">💪 Fast Glycolytic</div>
+            <div class="chip" onclick="sendPreset('What is slow oxidative fiber?')">🏃 Slow Oxidative</div>
+            <div class="chip" onclick="sendPreset('What is bone mineralization?')">🦴 Mineralization</div>
+            <div class="chip" onclick="sendPreset('What is hydroxyapatite?')">💎 Hydroxyapatite</div>
+            <div class="chip" onclick="sendPreset('What is periosteum?')">🦴 Periosteum</div>
+            <div class="chip" onclick="sendPreset('What is endochondral ossification?')">🦴 Bone Growth</div>
+            <div class="chip" onclick="sendPreset('What is intramembranous ossification?')">🦴 Skull Formation</div>
+            <div class="chip" onclick="sendPreset('What is pericardium?')">❤️ Pericardium</div>
+            <div class="chip" onclick="sendPreset('What is endocardium?')">❤️ Endocardium</div>
+            <div class="chip" onclick="sendPreset('What is heart valve prolapse?')">❤️ Valve Prolapse</div>
+            <div class="chip" onclick="sendPreset('What is coronary circulation?')">❤️ Coronary Blood</div>
+            <div class="chip" onclick="sendPreset('What is pulmonary hypertension?')">🫁 Pulmonary BP</div>
+            <div class="chip" onclick="sendPreset('What is systemic circulation?')">🌍 Systemic Blood</div>
+            <div class="chip" onclick="sendPreset('What is portal venous system?')">🧪 Hepatic Portal</div>
+            <div class="chip" onclick="sendPreset('What is erythropoietin?')">🩸 EPO Hormone</div>
+            <div class="chip" onclick="sendPreset('What is bilirubin?')">🧪 Bilirubin</div>
+            <div class="chip" onclick="sendPreset('What is urea cycle?')">🧪 Urea Cycle</div>
+            <div class="chip" onclick="sendPreset('What is creatinine clearance?')">🧪 Creatinine</div>
+            <div class="chip" onclick="sendPreset('What is osmotic pressure?')">🌊 Osmotic Pressure</div>
+            <div class="chip" onclick="sendPreset('What is oncotic pressure?')">🌊 Oncotic Pressure</div>
+            <div class="chip" onclick="sendPreset('What is interstitial fluid?')">🌊 Interstitial Fluid</div>
+            <div class="chip" onclick="sendPreset('What is transcellular fluid?')">🌊 Transcellular</div>
+            <div class="chip" onclick="sendPreset('What is immunoglobulin G?')">🛡️ IgG Antibody</div>
+            <div class="chip" onclick="sendPreset('What is immunoglobulin E?')">🛡️ IgE Allergy</div>
+            <div class="chip" onclick="sendPreset('What is complement system?')">🛡️ Complement System</div>
+            <div class="chip" onclick="sendPreset('What is major histocompatibility complex?')">🛡️ MHC Complex</div>
+            <div class="chip" onclick="sendPreset('What is natural killer cell?')">⚔️ Natural Killer</div>
+            <div class="chip" onclick="sendPreset('What is dendritic cell?')">🔍 Dendritic Cell</div>
+            <div class="chip" onclick="sendPreset('What is mast cell?')">🚨 Mast Cell</div>
+            <div class="chip" onclick="sendPreset('What is cytokine?')">🗣️ Cytokines</div>
+            <div class="chip" onclick="sendPreset('What is interferon?')">🛡️ Interferon</div>
+            <div class="chip" onclick="sendPreset('What is mitochondria?')">⚡ Mitochondria</div>
+            <div class="chip" onclick="sendPreset('What is ATP?')">🔋 ATP Energy</div>
+            <div class="chip" onclick="sendPreset('What is hemoglobin?')">🩸 Hemoglobin</div>
+            <div class="chip" onclick="sendPreset('What is platelet?')">🩸 Platelets</div>
+            <div class="chip" onclick="sendPreset('What is plasma?')">🧪 Blood Plasma</div>
+            <div class="chip" onclick="sendPreset('What is synapse?')">🧠 Synapse</div>
+            <div class="chip" onclick="sendPreset('What is neurotransmitter?')">🧠 Neurotransmitters</div>
+            <div class="chip" onclick="sendPreset('What is myelin sheath?')">🧠 Myelin Sheath</div>
+            <div class="chip" onclick="sendPreset('What is cerebrum?')">🧠 Cerebrum</div>
+            <div class="chip" onclick="sendPreset('What is cerebellum?')">🧠 Cerebellum</div>
+            <div class="chip" onclick="sendPreset('What is brainstem?')">🧠 Brainstem</div>
+            <div class="chip" onclick="sendPreset('What is hypothalamus?')">🧠 Hypothalamus</div>
+            <div class="chip" onclick="sendPreset('What is pituitary gland?')">🧬 Pituitary Gland</div>
+            <div class="chip" onclick="sendPreset('What is thyroid gland?')">🦋 Thyroid Gland</div>
+            <div class="chip" onclick="sendPreset('What is insulin?')">🧪 Insulin Hormone</div>
+            <div class="chip" onclick="sendPreset('What is adrenaline?')">⚡ Adrenaline</div>
+            <div class="chip" onclick="sendPreset('What is cortisol?')">🚨 Cortisol Stress</div>
+            <div class="chip" onclick="sendPreset('What is nephron?')">🧪 Nephrons</div>
+            <div class="chip" onclick="sendPreset('What is alveoli?')">🫁 Alveoli</div>
+            <div class="chip" onclick="sendPreset('What is diaphragm?')">🫁 Diaphragm</div>
+            <div class="chip" onclick="sendPreset('What is villi?')">🦠 Intestinal Villi</div>
+            <div class="chip" onclick="sendPreset('What is peristalsis?')">🌭 Peristalsis</div>
+            <div class="chip" onclick="sendPreset('What is gastric acid?')">🧪 Stomach Acid</div>
+            <div class="chip" onclick="sendPreset('What is bile?')">🧪 Liver Bile</div>
+            <div class="chip" onclick="sendPreset('What is lymphatic system?')">🛡️ Lymphatic System</div>
+            <div class="chip" onclick="sendPreset('What is lymph node?')">🛡️ Lymph Nodes</div>
+            <div class="chip" onclick="sendPreset('What is spleen?')">🛡️ Spleen</div>
+            <div class="chip" onclick="sendPreset('What is thymus gland?')">🛡️ Thymus Gland</div>
+            <div class="chip" onclick="sendPreset('What is bone marrow?')">🦴 Bone Marrow</div>
+            <div class="chip" onclick="sendPreset('What is tendon?')">💪 Tendons</div>
+            <div class="chip" onclick="sendPreset('What is ligament?')">🦴 Ligaments</div>
+            <div class="chip" onclick="sendPreset('What is cartilage?')">🦴 Cartilage</div>
+            <div class="chip" onclick="sendPreset('What is osteoarthritis?')">🦴 Osteoarthritis</div>
+            <div class="chip" onclick="sendPreset('What is osteoporosis?')">🦴 Osteoporosis</div>
+            <div class="chip" onclick="sendPreset('What is muscle atrophy?')">💪 Muscle Atrophy</div>
+            <div class="chip" onclick="sendPreset('What is muscle hypertrophy?')">💪 Muscle Hypertrophy</div>
+            <div class="chip" onclick="sendPreset('What is lactic acid?')">🏃 Lactic Acid</div>
+            <div class="chip" onclick="sendPreset('What is VO2 max?')">🫁 VO2 Max</div>
+            <div class="chip" onclick="sendPreset('What is resting heart rate?')">❤️ Resting HR</div>
+            <div class="chip" onclick="sendPreset('What is stroke volume?')">❤️ Stroke Volume</div>
+            <div class="chip" onclick="sendPreset('What is cardiac output?')">❤️ Cardiac Output</div>
+            <div class="chip" onclick="sendPreset('What is atherosclerosis?')">❤️ Atherosclerosis</div>
+            <div class="chip" onclick="sendPreset('What is hypertension?')">🩺 Hypertension</div>
+            <div class="chip" onclick="sendPreset('What is HDL cholesterol?')">🥑 Good Cholesterol</div>
+            <div class="chip" onclick="sendPreset('What is LDL cholesterol?')">🍔 Bad Cholesterol</div>
+            <div class="chip" onclick="sendPreset('What is saturated fat?')">🥑 Saturated Fat</div>
+            <div class="chip" onclick="sendPreset('What is unsaturated fat?')">🥑 Unsaturated Fat</div>
+            <div class="chip" onclick="sendPreset('What is dietary fiber?')">🌾 Dietary Fiber</div>
+            <div class="chip" onclick="sendPreset('What is antioxidant?')">🫐 Antioxidants</div>
+            <div class="chip" onclick="sendPreset('What is vitamin C?')">🍊 Vitamin C</div>
+            <div class="chip" onclick="sendPreset('What is vitamin D?')">☀️ Vitamin D</div>
+            <div class="chip" onclick="sendPreset('What is calcium?')">🦴 Calcium</div>
+            <div class="chip" onclick="sendPreset('What is iron deficiency?')">🩸 Iron Deficiency</div>
+            <div class="chip" onclick="sendPreset('What is dehydration?')">💧 Dehydration</div>
+            <div class="chip" onclick="sendPreset('What is electrolyte imbalance?')">⚡ Electrolytes</div>
+            <div class="chip" onclick="sendPreset('What is circadian rhythm?')">🌙 Circadian Rhythm</div>
+            <div class="chip" onclick="sendPreset('What is REM sleep?')">💤 REM Sleep</div>
+            <div class="chip" onclick="sendPreset('What is melatonin?')">🌙 Melatonin</div>
+            <div class="chip" onclick="sendPreset('What is immune memory?')">🛡️ Immune Memory</div>
+            <div class="chip" onclick="sendPreset('What is vaccination?')">💉 Vaccination</div>
+            <!-- 80 Additional Question Chips Added Below -->
+            <div class="chip" onclick="sendPreset('What is action potential?')">⚡ Action Potential</div>
+            <div class="chip" onclick="sendPreset('What is resting potential?')">⚡ Resting Potential</div>
+            <div class="chip" onclick="sendPreset('What is sodium potassium pump?')">⚡ Na-K Pump</div>
+            <div class="chip" onclick="sendPreset('What is blood brain barrier?')">🛡️ Blood-Brain Barrier</div>
+            <div class="chip" onclick="sendPreset('What is cerebrospinal fluid?')">🌊 CSF Fluid</div>
+            <div class="chip" onclick="sendPreset('What is frontal lobe?')">🧠 Frontal Lobe</div>
+            <div class="chip" onclick="sendPreset('What is parietal lobe?')">🧠 Parietal Lobe</div>
+            <div class="chip" onclick="sendPreset('What is temporal lobe?')">🧠 Temporal Lobe</div>
+            <div class="chip" onclick="sendPreset('What is occipital lobe?')">🧠 Occipital Lobe</div>
+            <div class="chip" onclick="sendPreset('What is hippocampus?')">🧠 Hippocampus</div>
+            <div class="chip" onclick="sendPreset('What is amygdala?')">🧠 Amygdala</div>
+            <div class="chip" onclick="sendPreset('What is dopamine?')">🧪 Dopamine</div>
+            <div class="chip" onclick="sendPreset('What is serotonin?')">🧪 Serotonin</div>
+            <div class="chip" onclick="sendPreset('What is oxytocin?')">🧪 Oxytocin</div>
+            <div class="chip" onclick="sendPreset('What is endorphin?')">🧪 Endorphins</div>
+            <div class="chip" onclick="sendPreset('What is parasympathetic nervous system?')">🌿 Parasympathetic</div>
+            <div class="chip" onclick="sendPreset('What is sympathetic nervous system?')">⚡ Sympathetic</div>
+            <div class="chip" onclick="sendPreset('What is autonomic nervous system?')">🧠 Autonomic System</div>
+            <div class="chip" onclick="sendPreset('What is somatic nervous system?')">🦾 Somatic System</div>
+            <div class="chip" onclick="sendPreset('What is reflex arc?')">⚡ Reflex Arc</div>
+            <div class="chip" onclick="sendPreset('What is cornea?')">👁️ Cornea</div>
+            <div class="chip" onclick="sendPreset('What is retina?')">👁️ Retina</div>
+            <div class="chip" onclick="sendPreset('What is photoreceptor cell?')">👁️ Photoreceptors</div>
+            <div class="chip" onclick="sendPreset('What is cochlea?')">👂 Cochlea</div>
+            <div class="chip" onclick="sendPreset('What is tympanic membrane?')">👂 Eardrum</div>
+            <div class="chip" onclick="sendPreset('What is olfactory receptor?')">👃 Olfactory Receptors</div>
+            <div class="chip" onclick="sendPreset('What is taste bud?')">👅 Taste Buds</div>
+            <div class="chip" onclick="sendPreset('What is epidermis?')">🛡️ Epidermis</div>
+            <div class="chip" onclick="sendPreset('What is dermis?')">🛡️ Dermis</div>
+            <div class="chip" onclick="sendPreset('What is melanin?')">🛡️ Melanin</div>
+            <div class="chip" onclick="sendPreset('What is sweat gland?')">💧 Sweat Glands</div>
+            <div class="chip" onclick="sendPreset('What is sebaceous gland?')">🧪 Sebaceous Glands</div>
+            <div class="chip" onclick="sendPreset('What is hair follicle?')">📌 Hair Follicles</div>
+            <div class="chip" onclick="sendPreset('What is parathyroid gland?')">🦋 Parathyroid</div>
+            <div class="chip" onclick="sendPreset('What is adrenal cortex?')">🧪 Adrenal Cortex</div>
+            <div class="chip" onclick="sendPreset('What is adrenal medulla?')">⚡ Adrenal Medulla</div>
+            <div class="chip" onclick="sendPreset('What is pancreas?')">🧪 Pancreas Function</div>
+            <div class="chip" onclick="sendPreset('What is glucagon?')">🧪 Glucagon</div>
+            <div class="chip" onclick="sendPreset('What is somatotropin?')">🧬 Growth Hormone</div>
+            <div class="chip" onclick="sendPreset('What is gastrin?')">🧪 Gastrin Hormone</div>
+            <div class="chip" onclick="sendPreset('What is secretin?')">🧪 Secretin</div>
+            <div class="chip" onclick="sendPreset('What is cholecystokinin?')">🧪 CCK Hormone</div>
+            <div class="chip" onclick="sendPreset('What is leptin?')">🍔 Leptin Satiety</div>
+            <div class="chip" onclick="sendPreset('What is ghrelin?')">🍔 Ghrelin Hunger</div>
+            <div class="chip" onclick="sendPreset('What is amylase?')">🧪 Amylase Enzyme</div>
+            <div class="chip" onclick="sendPreset('What is pepsin?')">🧪 Pepsin Enzyme</div>
+            <div class="chip" onclick="sendPreset('What is lipase?')">🧪 Lipase Enzyme</div>
+            <div class="chip" onclick="sendPreset('What is trypsin?')">🧪 Trypsin Enzyme</div>
+            <div class="chip" onclick="sendPreset('What is duodenum?')">🦠 Duodenum</div>
+            <div class="chip" onclick="sendPreset('What is jejunum?')">🦠 Jejunum</div>
+            <div class="chip" onclick="sendPreset('What is ileum?')">🦠 Ileum</div>
+            <div class="chip" onclick="sendPreset('What is cecum?')">🦠 Cecum</div>
+            <div class="chip" onclick="sendPreset('What is appendix?')">🦠 Appendix</div>
+            <div class="chip" onclick="sendPreset('What is colon?')">🦠 Colon</div>
+            <div class="chip" onclick="sendPreset('What is rectum?')">🦠 Rectum</div>
+            <div class="chip" onclick="sendPreset('What is glomerulus?')">🧪 Glomerulus</div>
+            <div class="chip" onclick="sendPreset('What is Bowman\'s capsule?')">🧪 Bowman\'s Capsule</div>
+            <div class="chip" onclick="sendPreset('What is loop of Henle?')">🧪 Loop of Henle</div>
+            <div class="chip" onclick="sendPreset('What is ureter?')">🧪 Ureter</div>
+            <div class="chip" onclick="sendPreset('What is urinary bladder?')">🧪 Bladder</div>
+            <div class="chip" onclick="sendPreset('What is urethra?')">🧪 Urethra</div>
+            <div class="chip" onclick="sendPreset('What is sinus rhythm?')">❤️ Sinus Rhythm</div>
+            <div class="chip" onclick="sendPreset('What is pacemaker cells?')">❤️ Pacemaker Cells</div>
+            <div class="chip" onclick="sendPreset('What is sinoatrial node?')">❤️ SA Node</div>
+            <div class="chip" onclick="sendPreset('What is atrioventricular node?')">❤️ AV Node</div>
+            <div class="chip" onclick="sendPreset('What is Purkinje fiber?')">❤️ Purkinje Fibers</div>
+            <div class="chip" onclick="sendPreset('What is vena cava?')">❤️ Vena Cava</div>
+            <div class="chip" onclick="sendPreset('What is aorta?')">❤️ Aorta</div>
+            <div class="chip" onclick="sendPreset('What is pulmonary artery?')">🫁 Pulmonary Artery</div>
+            <div class="chip" onclick="sendPreset('What is pulmonary vein?')">🫁 Pulmonary Vein</div>
+            <div class="chip" onclick="sendPreset('What is capillary?')">🩸 Capillaries</div>
+            <div class="chip" onclick="sendPreset('What is arteriole?')">🩸 Arterioles</div>
+            <div class="chip" onclick="sendPreset('What is venule?')">🩸 Venules</div>
+            <div class="chip" onclick="sendPreset('What is lymphatic capillary?')">🛡️ Lymph Capillaries</div>
+            <div class="chip" onclick="sendPreset('What is thoracic duct?')">🛡️ Thoracic Duct</div>
+            <div class="chip" onclick="sendPreset('What is phagocytosis?')">⚔️ Phagocytosis</div>
+            <div class="chip" onclick="sendPreset('What is apoptosis?')">💀 Apoptosis</div>
+            <div class="chip" onclick="sendPreset('What is mitosis?')">🧬 Mitosis</div>
+            <div class="chip" onclick="sendPreset('What is meiosis?')">🧬 Meiosis</div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="Ask your question here..." onkeydown="handleKeyPress(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function sendPreset(topic) {
+            document.getElementById("userInput").value = topic;
+            sendMessage();
+        }
+
+        function sendMessage() {
+            const inputField = document.getElementById("userInput");
+            const userText = inputField.value.trim();
+
+            if (userText === "") return;
+
+            appendMessage(userText, "user-message");
+            inputField.value = "";
+
+            const typingIndicator = document.getElementById("typingIndicator");
+            typingIndicator.style.display = "block";
+
+            setTimeout(() => {
+                typingIndicator.style.display = "none";
+                const botReply = generateBotResponse(userText);
+                appendMessage(botReply, "bot-message");
+            }, 600);
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+
+        function appendMessage(text, className) {
+            const chatMessages = document.getElementById("chatMessages");
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${className}`;
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function resetChat() {
+            const chatMessages = document.getElementById("chatMessages");
+            chatMessages.innerHTML = `<div class="message bot-message">Hi! I am your Body & Fitness AI. Ask me any question about calories, running, organs, or fitness!</div>`;
+        }
+
+        function generateBotResponse(input) {
+            input = input.toLowerCase();
+
+            // --- Custom Maker Question Added Here ---
+            if (input.includes("who made you") || input.includes("who created you")) {
+                return "Best student of class 8th A, he is Sreehari MK! 🌟\n\n💡 Want to know more? Try asking: \"What is neuroplasticity?\"";
+            }
+            // ----------------------------------------
+
+            else if ((input.includes("banana") || input.includes("bananas")) && (input.includes("run") || input.includes("km") || input.includes("calories"))) {
+                let bananaMatch = input.match(/(\d+)\s*banana/);
+                let kmMatch = input.match(/(\d+)\s*km/);
+
+                let numBananas = bananaMatch ? parseInt(bananaMatch[1]) : 5;
+                let kmRan = kmMatch ? parseInt(kmMatch[1]) : 4;
+
+                let caloriesFromBananas = numBananas * 105;
+                let caloriesBurnedRunning = kmRan * 65;    
+                let netCalories = caloriesFromBananas - caloriesBurnedRunning;
+
+                return `📊 Calorie & Fitness Breakdown:\nYou consumed about ${caloriesFromBananas} kcal from ${numBananas} bananas (~105 kcal each).\nRunning ${kmRan} km burned about ${caloriesBurnedRunning} kcal (~65 kcal per km).\nNet Energy Change: ${netCalories} kcal remaining in your body! Keep up the healthy lifestyle! 🏃‍♂️🍌\n\n💡 Want to know more? Try asking: "Who made you?"`;
+            }
+
+            // --- Advanced Topics ---
+            else if (input.includes("neuroplasticity")) {
+                return "Neuroplasticity is your brain's amazing ability to reorganize itself by forming new neural connections throughout life when you learn new skills or study!\n\n💡 Want to know more? Try asking: \"Who made you?\"";
+            }
+            else if (input.includes("cognitive reserve")) {
+                return "Cognitive reserve is your brain's resilience to damage, built up by reading, learning, solving puzzles, and keeping mentally active.\n\n💡 Want to know more? Try asking: \"What is neuroplasticity?\"";
+            }
+            else if (input.includes("mirror neurons")) {
+                return "Mirror neurons are special brain cells that fire both when you perform an action and when you watch someone else perform it, helping us learn by imitation and empathy.\n\n💡 Want to know more? Try asking: \"How does the brain work?\"";
+            }
+            else if (input.includes("enteric nervous system") || input.includes("second brain")) {
+                return "Your gut contains a massive network of over 100 million nerve cells called the enteric nervous system, often called your body's 'second brain'!\n\n💡 Want to know more? Try asking: \"What is the gut brain connection?\"";
+            }
+            else if (input.includes("proprioception")) {
+                return "Proprioception is your body's 'sixth sense'—the ability to know where your body parts are in space without looking at them.\n\n💡 Want to know more? Try asking: \"What is the vestibular system?\"";
+            }
+            else if (input.includes("vestibular system")) {
+                return "The vestibular system in your inner ear senses gravity and motion, keeping you balanced so you don't trip or fall over.\n\n💡 Want to know more? Try asking: \"What is proprioception?\"";
+            }
+            else if (input.includes("nociception")) {
+                return "Nociception is the sensory nervous process of detecting harmful or damaging stimuli, sending pain signals to your brain to protect you from injury.\n\n💡 Want to know more? Try asking: \"What are reflexes?\"";
+            }
+            else if (input.includes("thermoregulation")) {
+                return "Thermoregulation is the process by which your body maintains its core internal temperature within a safe, optimal operating range.\n\n💡 Want to know more? Try asking: \"What is homeostasis?\"";
+            }
+            else if (input.includes("basal cell carcinoma") || input.includes("skin cells")) {
+                return "Basal cell carcinoma is the most common type of skin cancer, originating in basal skin cells due to excessive ultraviolet sunlight exposure.\n\n💡 Want to know more? Try asking: \"What is melanin?\"";
+            }
+            else if (input.includes("enzyme")) {
+                return "Enzymes are specialized biological protein catalysts that speed up chemical reactions in your body, like breaking down food or copying DNA.\n\n💡 Want to know more? Try asking: \"What are coenzymes?\"";
+            }
+            else if (input.includes("coenzyme")) {
+                return "Coenzymes are small non-protein organic molecules (like many vitamins) that bind with enzymes to help them activate biochemical reactions.\n\n💡 Want to know more? Try asking: \"What is an enzyme?\"";
+            }
+            else if (input.includes("amino acid")) {
+                return "Amino acids are organic compounds known as the 'building blocks of proteins', combining in various chains to form muscles, organs, and tissues.\n\n💡 Want to know more? Try asking: \"Tell me about muscles and protein\"";
+            }
+            else if (input.includes("fatty acid")) {
+                return "Fatty acids are the building blocks of fats in your body, providing a concentrated source of long-term energy and building cell membranes.\n\n💡 Want to know more? Try asking: \"What is body fat?\"";
+            }
+            else if (input.includes("glycogen")) {
+                return "Glycogen is the stored form of glucose sugar kept inside your liver and skeletal muscles to be rapidly broken down for energy during exercise.\n\n💡 Want to know more? Try asking: \"What is metabolism?\"";
+            }
+            else if (input.includes("gluconeogenesis")) {
+                return "Gluconeogenesis is the metabolic process where your liver creates brand new glucose sugar molecules from non-carbohydrate sources during fasting.\n\n💡 Want to know more? Try asking: \"What is metabolism?\"";
+            }
+            else if (input.includes("ketosis")) {
+                return "Ketosis is a metabolic state where your body burns stored fats for fuel instead of glucose, producing molecules called ketones.\n\n💡 Want to know more? Try asking: \"What is body fat?\"";
+            }
+            else if (input.includes("oxidative phosphorylation")) {
+                return "Oxidative phosphorylation is the final stage of cellular respiration inside mitochondria that produces massive amounts of ATP energy using oxygen.\n\n💡 Want to know more? Try asking: \"What are mitochondria?\"";
+            }
+            else if (input.includes("anaerobic glycolysis")) {
+                return "Anaerobic glycolysis breaks down glucose for energy without using oxygen, producing quick energy but also creating lactic acid during intense sprinting.\n\n💡 Want to know more? Try asking: \"What is lactic threshold?\"";
+            }
+            else if (input.includes("fast glycolytic fiber")) {
+                return "Fast glycolytic muscle fibers provide explosive bursts of speed and power without oxygen, but fatigue very quickly.\n\n💡 Want to know more? Try asking: \"What are fast-twitch muscle fibers?\"";
+            }
+            else if (input.includes("slow oxidative fiber")) {
+                return "Slow oxidative muscle fibers use oxygen efficiently to contract slowly over long periods without tiring, perfect for endurance running.\n\n💡 Want to know more? Try asking: \"What are slow-twitch muscle fibers?\"";
+            }
+            else if (input.includes("bone mineralization")) {
+                return "Bone mineralization is the process where calcium and phosphate crystals deposit into your organic bone matrix to make bones hard and rigid.\n\n💡 Want to know more? Try asking: \"What do bones do?\"";
+            }
+            else if (input.includes("hydroxyapatite")) {
+                return "Hydroxyapatite is the primary crystalline mineral compound that gives bones and tooth enamel their incredible strength and hardness.\n\n💡 Want to know more? Try asking: \"What is enamel?\"";
+            }
+            else if (input.includes("periosteum")) {
+                return "The periosteum is a dense, fibrous outer membrane covering your bones that contains blood vessels and nerves to help repair bone fractures.\n\n💡 Want to know more? Try asking: \"What do bones do?\"";
+            }
+            else if (input.includes("endochondral ossification")) {
+                return "Endochondral ossification is the developmental process where embryonic cartilage is gradually replaced by bone tissue to form long bones.\n\n💡 Want to know more? Try asking: \"What are growth plates?\"";
+            }
+            else if (input.includes("intramembranous ossification")) {
+                return "Intramembranous ossification is the process that forms flat bones like your skull directly from sheets of connective tissue.\n\n💡 Want to know more? Try asking: \"What do bones do?\"";
+            }
+            else if (input.includes("pericardium")) {
+                return "The pericardium is a protective, fluid-filled double-walled sac that surrounds your heart, anchoring it in place and reducing friction as it beats.\n\n💡 Want to know more? Try asking: \"How does the heart work?\"";
+            }
+            else if (input.includes("endocardium")) {
+                return "The endocardium is the smooth inner lining of your heart chambers that prevents blood from sticking to the heart walls and forming clots.\n\n💡 Want to know more? Try asking: \"What is the myocardium?\"";
+            }
+            else if (input.includes("heart valve prolapse")) {
+                return "Heart valve prolapse happens when a heart valve doesn't close smoothly or tightly enough, allowing a small amount of blood to leak backward.\n\n💡 Want to know more? Try asking: \"How does the heart work?\"";
+            }
+            else if (input.includes("coronary circulation")) {
+                return "Coronary circulation is the specific network of blood vessels that supplies oxygenated blood directly to the heart muscle tissue itself.\n\n💡 Want to know more? Try asking: \"What is the aorta?\"";
+            }
+            else if (input.includes("pulmonary hypertension")) {
+                return "Pulmonary hypertension is high blood pressure specifically within the blood vessels running between your heart and lungs.\n\n💡 Want to know more? Try asking: \"What is blood pressure?\"";
+            }
+            else if (input.includes("systemic circulation")) {
+                return "Systemic circulation is the massive circuit that pumps oxygen-rich blood from your heart out to all your body tissues and organs.\n\n💡 Want to know more? Try asking: \"How does blood circulate?\"";
+            }
+            else if (input.includes("portal venous system") || input.includes("hepatic portal")) {
+                return "A portal venous system routes blood directly between two capillary beds without returning to the heart first, like the hepatic portal system carrying nutrient-rich blood from gut to liver.\n\n💡 Want to know more? Try asking: \"What does the liver do?\"";
+            }
+            else if (input.includes("erythropoietin") || input.includes("epo")) {
+                return "Erythropoietin (EPO) is a hormone released by your kidneys that stimulates your bone marrow to manufacture more red blood cells when oxygen levels are low.\n\n💡 Want to know more? Try asking: \"What do kidneys do?\"";
+            }
+            else if (input.includes("bilirubin")) {
+                return "Bilirubin is a yellowish breakdown pigment created when old red blood cells are recycled, which is processed by your liver and eliminated from the body.\n\n💡 Want to know more? Try asking: \"What does the liver do?\"";
+            }
+            else if (input.includes("urea cycle")) {
+                return "The urea cycle is a metabolic process in your liver that converts toxic ammonia waste from protein breakdown into safe urea to be filtered out by your kidneys.\n\n💡 Want to know more? Try asking: \"What do kidneys do?\"";
+            }
+            else if (input.includes("creatinine clearance")) {
+                return "Creatinine clearance is a medical test measuring how efficiently your kidneys filter waste products out of your blood plasma.\n\n💡 Want to know more? Try asking: \"What do kidneys do?\"";
+            }
+            else if (input.includes("osmotic pressure")) {
+                return "Osmotic pressure is the force driving water molecules across cell membranes to balance out solute concentrations inside and outside cells.\n\n💡 Want to know more? Try asking: \"Why do we need water?\"";
+            }
+            else if (input.includes("oncotic pressure")) {
+                return "Oncotic pressure is a form of osmotic pressure exerted by blood proteins that pulls fluid back into capillaries, preventing tissue swelling.\n\n💡 Want to know more? Try asking: \"What is plasma?\"";
+            }
+            else if (input.includes("interstitial fluid")) {
+                return "Interstitial fluid is the watery bath surrounding all the cells in your tissues, delivering nutrients and collecting waste before entering lymph vessels.\n\n💡 Want to know more? Try asking: \"What is the lymphatic system?\"";
+            }
+            else if (input.includes("transcellular fluid")) {
+                return "Transcellular fluid is specialized body fluid enclosed inside specific chambers, such as spinal fluid, eye fluid, and joint fluid.\n\n💡 Want to know more? Try asking: \"What is cerebrospinal fluid?\"";
+            }
+            else if (input.includes("immunoglobulin g") || input.includes("igg")) {
+                return "Immunoglobulin G (IgG) is the most common type of antibody in your blood, providing long-term immunity against bacterial and viral infections.\n\n💡 Want to know more? Try asking: \"What are antibodies?\"";
+            }
+            else if (input.includes("immunoglobulin e") || input.includes("ige")) {
+                return "Immunoglobulin E (IgE) is an antibody type involved in triggering allergic reactions and protecting against parasitic worm infections.\n\n💡 Want to know more? Try asking: \"What is an allergic reaction?\"";
+            }
+            else if (input.includes("complement system")) {
+                return "The complement system is a group of blood proteins that work together to destroy invading pathogens and flag them down for white blood cells.\n\n💡 Want to know more? Try asking: \"How does the immune system fight germs?\"";
+            }
+            else if (input.includes("major histocompatibility complex") || input.includes("mhc")) {
+                return "MHC molecules are protein markers on cell surfaces that display peptide fragments so your immune system can recognize self vs non-self cells.\n\n💡 Want to know more? Try asking: \"What are antigens?\"";
+            }
+            else if (input.includes("natural killer cell")) {
+                return "Natural killer cells are specialized immune cells that rapidly hunt down and destroy virus-infected host cells and emerging tumor cells.\n\n💡 Want to know more? Try asking: \"What are white blood cells?\"";
+            }
+            else if (input.includes("dendritic cell")) {
+                return "Dendritic cells act as frontline messengers of the immune system, capturing foreign antigens and presenting them to T cells to trigger defense.\n\n💡 Want to know more? Try asking: \"What are T cells?\"";
+            }
+            else if (input.includes("mast cell")) {
+                return "Mast cells are tissue-dwelling immune cells packed with histamine granules that trigger immediate inflammatory and allergic responses.\n\n💡 Want to know more? Try asking: \"What is histamine?\"";
+            }
+            else if (input.includes("cytokine")) {
+                return "Cytokines are small signaling protein molecules released by immune cells to coordinate inflammation and direct white blood cells to infection sites.\n\n💡 Want to know more? Try asking: \"What is inflammation?\"";
+            }
+            else if (input.includes("interferon")) {
+                return "Interferon proteins are warning signals released by virus-infected cells to alert neighboring cells to lock down their defenses against viral replication.\n\n💡 Want to know more? Try asking: \"What are antibodies?\"";
+            }
+            else if (input.includes("mitochondria")) {
+                return "Mitochondria are known as the 'powerhouses of the cell', generating most of the chemical energy (ATP) needed to power biochemical reactions!\n\n💡 Want to know more? Try asking: \"What is ATP?\"";
+            }
+            else if (input.includes("atp")) {
+                return "ATP (Adenosine Triphosphate) is the primary energy currency of life, storing and transporting chemical energy within cells.\n\n💡 Want to know more? Try asking: \"What is oxidative phosphorylation?\"";
+            }
+            else if (input.includes("hemoglobin")) {
+                return "Hemoglobin is an iron-rich protein inside red blood cells that carries oxygen from your lungs to tissues throughout your body.\n\n💡 Want to know more? Try asking: \"What is iron deficiency?\"";
+            }
+            else if (input.includes("platelet")) {
+                return "Platelets are tiny cell fragments in your blood that clump together to form clots and stop bleeding when you get a cut.\n\n💡 Want to know more? Try asking: \"What is plasma?\"";
+            }
+            else if (input.includes("plasma")) {
+                return "Blood plasma is the yellowish liquid component of blood that holds blood cells, proteins, nutrients, and waste products in suspension.\n\n💡 Want to know more? Try asking: \"What is hemoglobin?\"";
+            }
+            else if (input.includes("synapse")) {
+                return "A synapse is the microscopic junction between two neurons where electrical or chemical signals pass from one cell to the next.\n\n💡 Want to know more? Try asking: \"What is a neurotransmitter?\"";
+            }
+            else if (input.includes("neurotransmitter")) {
+                return "Neurotransmitters are chemical messenger molecules like dopamine and serotonin that transmit signals across a synapse from one neuron to another.\n\n💡 Want to know more? Try asking: \"What is a synapse?\"";
+            }
+            else if (input.includes("myelin sheath")) {
+                return "The myelin sheath is an insulating layer of fatty protein that wraps around nerve fibers, allowing electrical impulses to transmit quickly and efficiently.\n\n💡 Want to know more? Try asking: \"How do nerves work?\"";
+            }
+            else if (input.includes("cerebrum")) {
+                return "The cerebrum is the largest part of the brain, handling higher functions like thinking, reasoning, learning, and voluntary muscle movement.\n\n💡 Want to know more? Try asking: \"What is the cerebellum?\"";
+            }
+            else if (input.includes("cerebellum")) {
+                return "The cerebellum is located at the back of your brain, fine-tuning motor skills, balance, posture, and coordination.\n\n💡 Want to know more? Try asking: \"What is proprioception?\"";
+            }
+            else if (input.includes("brainstem")) {
+                return "The brainstem connects your brain to the spinal cord, controlling automatic survival functions like breathing, heart rate, and blood pressure.\n\n💡 Want to know more? Try asking: \"How does the heart work?\"";
+            }
+            else if (input.includes("hypothalamus")) {
+                return "The hypothalamus is a tiny region of the brain that acts as your master thermostat, controlling hunger, thirst, sleep, and body temperature.\n\n💡 Want to know more? Try asking: \"What is thermoregulation?\"";
+            }
+            else if (input.includes("pituitary gland")) {
+                return "The pituitary gland is called the 'master gland' because it releases hormones that control all other endocrine glands in your body.\n\n💡 Want to know more? Try asking: \"What is growth hormone?\"";
+            }
+            else if (input.includes("thyroid gland")) {
+                return "The thyroid gland is a butterfly-shaped gland in your neck that produces hormones regulating your body's overall metabolism and energy.\n\n💡 Want to know more? Try asking: \"What is metabolism?\"";
+            }
+            else if (input.includes("insulin")) {
+                return "Insulin is a hormone made by your pancreas that helps glucose sugar move from your bloodstream into your cells for energy.\n\n💡 Want to know more? Try asking: \"What is diabetes?\"";
+            }
+            else if (input.includes("adrenaline")) {
+                return "Adrenaline is a hormone rushed out by your adrenal glands during times of stress or excitement, triggering your 'fight-or-flight' response.\n\n💡 Want to know more? Try asking: \"What is cortisol?\"";
+            }
+            else if (input.includes("cortisol")) {
+                return "Cortisol is known as the primary 'stress hormone', helping manage energy use, blood pressure, and inflammatory responses during stress.\n\n💡 Want to know more? Try asking: \"What is adrenaline?\"";
+            }
+            else if (input.includes("nephron")) {
+                return "Nephrons are the microscopic filtering units inside your kidneys that clean your blood and form urine.\n\n💡 Want to know more? Try asking: \"What do kidneys do?\"";
+            }
+            else if (input.includes("alveoli")) {
+                return "Alveoli are tiny, grape-like air sacs in your lungs where oxygen enters your blood and carbon dioxide is removed.\n\n💡 Want to know more? Try asking: \"How do lungs work?\"";
+            }
+            else if (input.includes("diaphragm")) {
+                return "The diaphragm is a large, dome-shaped muscle beneath your lungs that contracts and flattens to help you breathe in and out.\n\n💡 Want to know more? Try asking: \"How do lungs work?\"";
+            }
+            else if (input.includes("villi")) {
+                return "Villi are tiny finger-like projections lining your small intestine that massively increase surface area to absorb nutrients into your blood.\n\n💡 Want to know more? Try asking: \"How does digestion work?\"";
+            }
+            else if (input.includes("peristalsis")) {
+                return "Peristalsis is a series of wave-like muscle contractions that moves food steadily down through your entire digestive tract.\n\n💡 Want to know more? Try asking: \"How does digestion work?\"";
+            }
+            else if (input.includes("gastric acid")) {
+                return "Gastric acid is a powerful digestive fluid in your stomach composed mostly of hydrochloric acid, helping break down food and kill bacteria.\n\n💡 Want to know more? Try asking: \"What does the stomach do?\"";
+            }
+            else if (input.includes("bile")) {
+                return "Bile is a greenish-yellow fluid produced by the liver that helps digest and break down dietary fats in the small intestine.\n\n💡 Want to know more? Try asking: \"What does the liver do?\"";
+            }
+            else if (input.includes("lymphatic system")) {
+                return "The lymphatic system is a network of tissues and organs that help rid the body of toxins, waste, and transport infection-fighting white blood cells.\n\n💡 Want to know more? Try asking: \"What are lymph nodes?\"";
+            }
+            else if (input.includes("lymph node")) {
+                return "Lymph nodes are small bean-shaped structures acting as filters along your lymph channels, trapping germs and activating immune cells.\n\n💡 Want to know more? Try asking: \"What is the lymphatic system?\"";
+            }
+            else if (input.includes("spleen")) {
+                return "The spleen is an organ that filters blood, stores white blood cells, and destroys old, worn-out red blood cells.\n\n💡 Want to know more? Try asking: \"What does the immune system do?\"";
+            }
+            else if (input.includes("thymus gland")) {
+                return "The thymus gland is a specialized organ where vital T-lymphocyte white blood cells mature and learn to protect your body.\n\n💡 Want to know more? Try asking: \"What are T cells?\"";
+            }
+            else if (input.includes("bone marrow")) {
+                return "Bone marrow is the spongy tissue inside your bones where all red blood cells, white blood cells, and platelets are manufactured.\n\n💡 Want to know more? Try asking: \"What do red blood cells do?\"";
+            }
+            else if (input.includes("tendon")) {
+                return "Tendons are tough bands of fibrous connective tissue that firmly attach your skeletal muscles to your bones.\n\n💡 Want to know more? Try asking: \"What are ligaments?\"";
+            }
+            else if (input.includes("ligament")) {
+                return "Ligaments are strong bands of fibrous tissue that connect bones to other bones, stabilizing and holding your joints together.\n\n💡 Want to know more? Try asking: \"What are tendons?\"";
+            }
+            else if (input.includes("cartilage")) {
+                return "Cartilage is a flexible, rubbery connective tissue that covers the ends of bones in joints to cushion impact and prevent friction.\n\n💡 Want to know more? Try asking: \"What is osteoarthritis?\"";
+            }
+            else if (input.includes("osteoarthritis")) {
+                return "Osteoarthritis is a common joint disease where protective cartilage cushioning the ends of bones wears down over time.\n\n💡 Want to know more? Try asking: \"What is cartilage?\"";
+            }
+            else if (input.includes("osteoporosis")) {
+                return "Osteoporosis is a condition that weakens bones, making them fragile and much more likely to break.\n\n💡 Want to know more? Try asking: \"What is bone mineralization?\"";
+            }
+            else if (input.includes("muscle atrophy")) {
+                return "Muscle atrophy is the wasting away or shrinking of muscle mass due to lack of physical use, disease, or aging.\n\n💡 Want to know more? Try asking: \"What is muscle hypertrophy?\"";
+            }
+            else if (input.includes("muscle hypertrophy")) {
+                return "Muscle hypertrophy is the growth and increase in the size of muscle cells resulting from strength training and exercise.\n\n💡 Want to know more? Try asking: \"What is muscle atrophy?\"";
+            }
+            else if (input.includes("lactic acid")) {
+                return "Lactic acid is a chemical byproduct produced in muscles during rapid, intense anaerobic exercise when oxygen levels are low.\n\n💡 Want to know more? Try asking: \"What is anaerobic glycolysis?\"";
+            }
+            else if (input.includes("vo2 max")) {
+                return "VO2 max measures the maximum amount of oxygen your body can use during intense aerobic exercise, indicating cardiovascular fitness.\n\n💡 Want to know more? Try asking: \"How does running improve fitness?\"";
+            }
+            else if (input.includes("resting heart rate")) {
+                return "Resting heart rate is the number of times your heart beats per minute while you are completely at rest; lower values often indicate better fitness.\n\n💡 Want to know more? Try asking: \"How does the heart work?\"";
+            }
+            else if (input.includes("stroke volume")) {
+                return "Stroke volume is the exact volume of blood pumped out of your heart's left ventricle with each single heartbeat.\n\n💡 Want to know more? Try asking: \"What is cardiac output?\"";
+            }
+            else if (input.includes("cardiac output")) {
+                return "Cardiac output is the total volume of blood pumped by your heart per minute, calculated by heart rate times stroke volume.\n\n💡 Want to know more? Try asking: \"What is stroke volume?\"";
+            }
+            else if (input.includes("atherosclerosis")) {
+                return "Atherosclerosis happens when fatty plaque builds up inside your arteries, narrowing them and restricting blood flow.\n\n💡 Want to know more? Try asking: \"What is cholesterol?\"";
+            }
+            else if (input.includes("hypertension")) {
+                return "Hypertension, or high blood pressure, is a condition where the force of blood against your artery walls is consistently too high.\n\n💡 Want to know more? Try asking: \"What is blood pressure?\"";
+            }
+            else if (input.includes("hdl cholesterol")) {
+                return "HDL (High-Density Lipoprotein) is often called 'good cholesterol' because it helps sweep harmful cholesterol away from your arteries.\n\n💡 Want to know more? Try asking: \"What is LDL cholesterol?\"";
+            }
+            else if (input.includes("ldl cholesterol")) {
+                return "LDL (Low-Density Lipoprotein) is known as 'bad cholesterol' because high levels can lead to plaque buildup inside arteries.\n\n💡 Want to know more? Try asking: \"What is HDL cholesterol?\"";
+            }
+            else if (input.includes("saturated fat")) {
+                return "Saturated fats are dietary fats that are typically solid at room temperature and should be eaten in moderation for heart health.\n\n💡 Want to know more? Try asking: \"What is unsaturated fat?\"";
+            }
+            else if (input.includes("unsaturated fat")) {
+                return "Unsaturated fats are healthy dietary fats, usually liquid at room temperature, found in foods like olive oil, nuts, and avocados.\n\n💡 Want to know more? Try asking: \"What is saturated fat?\"";
+            }
+            else if (input.includes("dietary fiber")) {
+                return "Dietary fiber is a plant-based carbohydrate that your body cannot digest, helping regulate digestion and keep your gut healthy.\n\n💡 Want to know more? Try asking: \"How does digestion work?\"";
+            }
+            else if (input.includes("antioxidant")) {
+                return "Antioxidants are molecules that help protect your cells against damage caused by harmful free radicals in the body.\n\n💡 Want to know more? Try asking: \"What are vitamins?\"";
+            }
+            else if (input.includes("vitamin c")) {
+                return "Vitamin C is a vital water-soluble vitamin that supports immune function, skin health, and acts as a powerful antioxidant.\n\n💡 Want to know more? Try asking: \"What are antioxidants?\"";
+            }
+            else if (input.includes("vitamin d")) {
+                return "Vitamin D is known as the 'sunshine vitamin', essential for helping your body absorb calcium to build strong, healthy bones.\n\n💡 Want to know more? Try asking: \"What is bone mineralization?\"";
+            }
+            else if (input.includes("calcium")) {
+                return "Calcium is a vital mineral that your body needs to build strong bones, teeth, and to help muscles contract properly.\n\n💡 Want to know more? Try asking: \"What is vitamin D?\"";
+            }
+            else if (input.includes("iron deficiency")) {
+                return "Iron deficiency happens when your body lacks enough iron, preventing it from producing adequate hemoglobin to carry oxygen, causing fatigue.\n\n💡 Want to know more? Try asking: \"What is hemoglobin?\"";
+            }
+            else if (input.includes("dehydration")) {
+                return "Dehydration occurs when your body loses more fluids than it takes in, leading to fatigue, thirst, and dizziness.\n\n💡 Want to know more? Try asking: \"Why do we need water?\"";
+            }
+            else if (input.includes("electrolyte imbalance")) {
+                return "Electrolyte imbalances happen when essential minerals like sodium and potassium in your body fluids become too high or too low.\n\n💡 Want to know more? Try asking: \"Why do we need water?\"";
+            }
+            else if (input.includes("circadian rhythm")) {
+                return "Your circadian rhythm is your body's natural 24-hour internal clock that regulates sleep-wake cycles and alertness.\n\n💡 Want to know more? Try asking: \"What is REM sleep?\"";
+            }
+            else if (input.includes("rem sleep")) {
+                return "REM (Rapid Eye Movement) sleep is a deep phase of sleep associated with vivid dreaming, memory consolidation, and brain restoration.\n\n💡 Want to know more? Try asking: \"What is circadian rhythm?\"";
+            }
+            else if (input.includes("melatonin")) {
+                return "Melatonin is a hormone produced by your brain's pineal gland that helps control your sleep cycles and tells your body when it's time to rest.\n\n💡 Want to know more? Try asking: \"What is circadian rhythm?\"";
+            }
+            else if (input.includes("immune memory")) {
+                return "Immune memory is the ability of your adaptive immune system to remember past pathogens and mount a rapid defense upon re-exposure.\n\n💡 Want to know more? Try asking: \"What is vaccination?\"";
+            }
+            else if (input.includes("vaccination")) {
+                return "Vaccination trains your immune system to recognize and fight off specific dangerous pathogens safely without causing disease.\n\n💡 Want to know more? Try asking: \"What is immune memory?\"";
+            }
+            // --- Responses for the 80 Added Questions ---
+            else if (input.includes("action potential")) {
+                return "An action potential is a rapid electrical impulse that travels down an axon, allowing neurons to communicate across long distances.\n\n💡 Want to know more? Try asking: \"What is resting potential?\"";
+            }
+            else if (input.includes("resting potential")) {
+                return "Resting potential is the electrical voltage across a neuron's membrane when it is resting and ready to fire an impulse.\n\n💡 Want to know more? Try asking: \"What is sodium potassium pump?\"";
+            }
+            else if (input.includes("sodium potassium pump")) {
+                return "The sodium-potassium pump is an active protein pump that maintains cell voltage by moving sodium ions out and potassium ions into cells.\n\n💡 Want to know more? Try asking: \"What is action potential?\"";
+            }
+            else if (input.includes("blood brain barrier")) {
+                return "The blood-brain barrier is a highly selective semipermeable border protecting the brain from circulating pathogens and toxins.\n\n💡 Want to know more? Try asking: \"What is cerebrospinal fluid?\"";
+            }
+            else if (input.includes("cerebrospinal fluid")) {
+                return "Cerebrospinal fluid is a clear liquid surrounding the brain and spinal cord, acting as a shock absorber and supplying nutrients.\n\n💡 Want to know more? Try asking: \"What is the blood brain barrier?\"";
+            }
+            else if (input.includes("frontal lobe")) {
+                return "The frontal lobe is the front part of the brain responsible for reasoning, planning, problem-solving, and voluntary movement.\n\n💡 Want to know more? Try asking: \"What is the parietal lobe?\"";
+            }
+            else if (input.includes("parietal lobe")) {
+                return "The parietal lobe processes sensory information like touch, temperature, pressure, and spatial awareness.\n\n💡 Want to know more? Try asking: \"What is proprioception?\"";
+            }
+            else if (input.includes("temporal lobe")) {
+                return "The temporal lobe handles memory, processing sounds, language comprehension, and recognizing faces.\n\n💡 Want to know more? Try asking: \"What is the hippocampus?\"";
+            }
+            else if (input.includes("occipital lobe")) {
+                return "The occipital lobe is the visual processing center located at the very back of your brain.\n\n💡 Want to know more? Try asking: \"What is the retina?\"";
+            }
+            else if (input.includes("hippocampus")) {
+                return "The hippocampus is a seahorse-shaped brain structure crucial for forming and filing new long-term memories.\n\n💡 Want to know more? Try asking: \"What is the temporal lobe?\"";
+            }
+            else if (input.includes("amygdala")) {
+                return "The amygdala processes powerful emotional responses, especially fear, anger, and threat detection.\n\n💡 Want to know more? Try asking: \"What is adrenaline?\"";
+            }
+            else if (input.includes("dopamine")) {
+                return "Dopamine is a feel-good neurotransmitter associated with reward, motivation, pleasure, and movement control.\n\n💡 Want to know more? Try asking: \"What is serotonin?\"";
+            }
+            else if (input.includes("serotonin")) {
+                return "Serotonin is a key neurotransmitter that regulates mood, sleep, digestion, and emotional well-being.\n\n💡 Want to know more? Try asking: \"What is dopamine?\"";
+            }
+            else if (input.includes("oxytocin")) {
+                return "Oxytocin is often called the 'bonding hormone', fostering social connection, trust, and love between people.\n\n💡 Want to know more? Try asking: \"What are neurotransmitters?\"";
+            }
+            else if (input.includes("endorphin")) {
+                return "Endorphins are natural pain-relieving chemicals released by your brain during exercise or excitement (like a 'runner's high').\n\n💡 Want to know more? Try asking: \"How many calories do I burn running?\"";
+            }
+            else if (input.includes("parasympathetic nervous system")) {
+                return "The parasympathetic nervous system controls 'rest-and-digest' functions, slowing heart rate and conserving body energy.\n\n💡 Want to know more? Try asking: \"What is the sympathetic nervous system?\"";
+            }
+            else if (input.includes("sympathetic nervous system")) {
+                return "The sympathetic nervous system triggers your 'fight-or-flight' response during danger or stress, speeding up heart rate and breathing.\n\n💡 Want to know more? Try asking: \"What is adrenaline?\"";
+            }
+            else if (input.includes("autonomic nervous system")) {
+                return "The autonomic nervous system regulates involuntary body functions like digestion, heart rate, and respiratory rate.\n\n💡 Want to know more? Try asking: \"What is the brainstem?\"";
+            }
+            else if (input.includes("somatic nervous system")) {
+                return "The somatic nervous system controls all voluntary muscle movements and transmits sensory info to the central nervous system.\n\n💡 Want to know more? Try asking: \"What is the cerebrum?\"";
+            }
+            else if (input.includes("reflex arc")) {
+                return "A reflex arc is a neural pathway that bypasses the brain for instant, automatic reactions to dangerous stimuli.\n\n💡 Want to know more? Try asking: \"What is nociception?\"";
+            }
+            else if (input.includes("cornea")) {
+                return "The cornea is the clear outer dome of the eye that protects it and helps focus incoming light.\n\n💡 Want to know more? Try asking: \"What is the retina?\"";
+            }
+            else if (input.includes("retina")) {
+                return "The retina is the light-sensitive layer at the back of the eye containing photoreceptor cells that capture images.\n\n💡 Want to know more? Try asking: \"What is the cornea?\"";
+            }
+            else if (input.includes("photoreceptor cell")) {
+                return "Photoreceptors are specialized light-detecting cells in the retina known as rods (for dim light) and cones (for color).\n\n💡 Want to know more? Try asking: \"What is the retina?\"";
+            }
+            else if (input.includes("cochlea")) {
+                return "The cochlea is a snail-shaped, fluid-filled organ in the inner ear that converts sound vibrations into nerve signals.\n\n💡 Want to know more? Try asking: \"What is the vestibular system?\"";
+            }
+            else if (input.includes("tympanic membrane") || input.includes("eardrum")) {
+                return "The tympanic membrane (eardrum) is a thin membrane that vibrates when sound waves hit it, transmitting sound into the middle ear.\n\n💡 Want to know more? Try asking: \"What is the cochlea?\"";
+            }
+            else if (input.includes("olfactory receptor")) {
+                return "Olfactory receptors in your nasal cavity detect chemical odor molecules, allowing you to experience the sense of smell.\n\n💡 Want to know more? Try asking: \"What are taste buds?\"";
+            }
+            else if (input.includes("taste bud")) {
+                return "Taste buds are sensory organs on your tongue that detect sweet, salty, sour, bitter, and savory (umami) flavors.\n\n💡 Want to know more? Try asking: \"What are olfactory receptors?\"";
+            }
+            else if (input.includes("epidermis")) {
+                return "The epidermis is the tough, waterproof outer layer of your skin that shields your body from the outside world.\n\n💡 Want to know more? Try asking: \"What is the dermis?\"";
+            }
+            else if (input.includes("dermis")) {
+                return "The dermis is the thick inner layer of skin containing blood vessels, nerve endings, hair follicles, and sweat glands.\n\n💡 Want to know more? Try asking: \"What is the epidermis?\"";
+            }
+            else if (input.includes("melanin")) {
+                return "Melanin is the dark pigment produced by skin cells that gives skin and hair their color and protects against UV radiation.\n\n💡 Want to know more? Try asking: \"What is basal cell carcinoma?\"";
+            }
+            else if (input.includes("sweat gland")) {
+                return "Sweat glands secrete watery fluid onto the skin surface to cool your body down via evaporative cooling during thermoregulation.\n\n💡 Want to know more? Try asking: \"What is thermoregulation?\"";
+            }
+            else if (input.includes("sebaceous gland")) {
+                return "Sebaceous glands produce sebum, an oily substance that lubricates and waterproofs your skin and hair.\n\n💡 Want to know more? Try asking: \"What is the dermis?\"";
+            }
+            else if (input.includes("hair follicle")) {
+                return "Hair follicles are skin structures embedded in the dermis from which hair strands grow.\n\n💡 Want to know more? Try asking: \"What is the epidermis?\"";
+            }
+            else if (input.includes("parathyroid gland")) {
+                return "Parathyroid glands are four tiny glands behind the thyroid that regulate calcium levels in your blood and bones.\n\n💡 Want to know more? Try asking: \"What is calcium?\"";
+            }
+            else if (input.includes("adrenal cortex")) {
+                return "The adrenal cortex is the outer region of the adrenal glands, producing vital hormones like cortisol and aldosterone.\n\n💡 Want to know more? Try asking: \"What is cortisol?\"";
+            }
+            else if (input.includes("adrenal medulla")) {
+                return "The adrenal medulla is the inner part of the adrenal glands that rapidly releases adrenaline during emergency situations.\n\n💡 Want to know more? Try asking: \"What is adrenaline?\"";
+            }
+            else if (input.includes("pancreas function")) {
+                return "The pancreas acts as both an endocrine gland (making insulin and glucagon) and an exocrine organ (making digestive enzymes).\n\n💡 Want to know more? Try asking: \"What is insulin?\"";
+            }
+            else if (input.includes("glucagon")) {
+                return "Glucagon is a hormone made by the pancreas that signals your liver to release stored glucose when blood sugar is too low.\n\n💡 Want to know more? Try asking: \"What is insulin?\"";
+            }
+            else if (input.includes("growth hormone") || input.includes("somatotropin")) {
+                return "Growth hormone stimulates body growth, cell reproduction, and regeneration in humans, especially during childhood and sleep.\n\n💡 Want to know more? Try asking: \"What is the pituitary gland?\"";
+            }
+            else if (input.includes("gastrin")) {
+                return "Gastrin is a hormone that stimulates the stomach to release gastric acid for digesting food.\n\n💡 Want to know more? Try asking: \"What is gastric acid?\"";
+            }
+            else if (input.includes("secretin")) {
+                return "Secretin is a hormone that prompts the pancreas to release bicarbonate to neutralize stomach acid in the small intestine.\n\n💡 Want to know more? Try asking: \"How does digestion work?\"";
+            }
+            else if (input.includes("cholecystokinin") || input.includes("cck")) {
+                return "CCK is a hormone released after eating that stimulates the gallbladder to release bile and signals fullness to the brain.\n\n💡 Want to know more? Try asking: \"What is bile?\"";
+            }
+            else if (input.includes("leptin")) {
+                return "Leptin is a hormone produced by fat cells that signals satiety (fullness) to the brain to help regulate energy balance.\n\n💡 Want to know more? Try asking: \"What is ghrelin?\"";
+            }
+            else if (input.includes("ghrelin")) {
+                return "Ghrelin is known as the 'hunger hormone', produced in the stomach to stimulate your appetite before meals.\n\n💡 Want to know more? Try asking: \"What is leptin?\"";
+            }
+            else if (input.includes("amylase")) {
+                return "Amylase is an enzyme found in saliva and pancreatic juice that breaks down starches into simpler sugars.\n\n💡 Want to know more? Try asking: \"What are enzymes?\"";
+            }
+            else if (input.includes("pepsin")) {
+                return "Pepsin is a stomach enzyme that breaks down proteins into smaller peptides during digestion.\n\n💡 Want to know more? Try asking: \"What is gastric acid?\"";
+            }
+            else if (input.includes("lipase")) {
+                return "Lipase is a digestive enzyme produced by the pancreas that breaks down dietary fats into fatty acids and glycerol.\n\n💡 Want to know more? Try asking: \"What is fatty acid?\"";
+            }
+            else if (input.includes("trypsin")) {
+                return "Trypsin is a powerful protein-digesting enzyme produced in the pancreas and active in the small intestine.\n\n💡 Want to know more? Try asking: \"What is amino acid?\"";
+            }
+            else if (input.includes("duodenum")) {
+                return "The duodenum is the first and shortest section of the small intestine where major chemical digestion takes place.\n\n💡 Want to know more? Try asking: \"What is villi?\"";
+            }
+            else if (input.includes("jejunum")) {
+                return "The jejunum is the middle section of the small intestine specialized for absorbing nutrients into the bloodstream.\n\n💡 Want to know more? Try asking: \"What is villi?\"";
+            }
+            else if (input.includes("ileum")) {
+                return "The ileum is the final section of the small intestine that absorbs remaining nutrients and vitamin B12.\n\n💡 Want to know more? Try asking: \"How does digestion work?\"";
+            }
+            else if (input.includes("cecum")) {
+                return "The cecum is a pouch forming the first part of the large intestine, connecting it to the small intestine.\n\n💡 Want to know more? Try asking: \"What is the appendix?\"";
+            }
+            else if (input.includes("appendix")) {
+                return "The appendix is a small tube attached to the cecum that plays a supportive role in gut immunity and microbiome health.\n\n💡 Want to know more? Try asking: \"What is the cecum?\"";
+            }
+            else if (input.includes("colon")) {
+                return "The colon is the main part of the large intestine where water and salts are absorbed from leftover waste material.\n\n💡 Want to know more? Try asking: \"How does digestion work?\"";
+            }
+            else if (input.includes("rectum")) {
+                return "The rectum is the final straight section of the large intestine acting as temporary storage for solid waste before elimination.\n\n💡 Want to know more? Try asking: \"What is the colon?\"";
+            }
+            else if (input.includes("glomerulus")) {
+                return "A glomerulus is a tiny cluster of blood capillaries inside nephrons where blood filtration begins in the kidneys.\n\n💡 Want to know more? Try asking: \"What is a nephron?\"";
+            }
+            else if (input.includes("bowman's capsule")) {
+                return "Bowman's capsule is a cup-like sac surrounding the glomerulus that collects filtered fluid from the blood.\n\n💡 Want to know more? Try asking: \"What is a nephron?\"";
+            }
+            else if (input.includes("loop of henle")) {
+                return "The loop of henle is a U-shaped portion of a kidney nephron that helps concentrate urine and conserve water.\n\n💡 Want to know more? Try asking: \"What is osmotic pressure?\"";
+            }
+            else if (input.includes("ureter")) {
+                return "Ureters are muscular tubes that carry urine down from each kidney into the urinary bladder.\n\n💡 Want to know more? Try asking: \"What do kidneys do?\"";
+            }
+            else if (input.includes("urinary bladder")) {
+                return "The urinary bladder is a hollow muscular organ that collects and stores urine prior to urination.\n\n💡 Want to know more? Try asking: \"What is a ureter?\"";
+            }
+            else if (input.includes("urethra")) {
+                return "The urethra is the tube that transports urine from the bladder out of the body.\n\n💡 Want to know more? Try asking: \"What is the urinary bladder?\"";
+            }
+            else if (input.includes("sinus rhythm")) {
+                return "Sinus rhythm is the normal, healthy regular beating pattern of the heart set by its natural pacemaker.\n\n💡 Want to know more? Try asking: \"How does the heart work?\"";
+            }
+            else if (input.includes("pacemaker cells")) {
+                return "Pacemaker cells are specialized heart cells that spontaneously generate electrical signals to drive heart contractions.\n\n💡 Want to know more? Try asking: \"What is the sinoatrial node?\"";
+            }
+            else if (input.includes("sinoatrial node") || input.includes("sa node")) {
+                return "The sinoatrial (SA) node is the heart's primary natural pacemaker located in the right atrium.\n\n💡 Want to know more? Try asking: \"What is the atrioventricular node?\"";
+            }
+            else if (input.includes("atrioventricular node") || input.includes("av node")) {
+                return "The AV node is a cluster of cells that delays electrical signals from the atria, ensuring ventricles fill with blood before pumping.\n\n💡 Want to know more? Try asking: \"What is the sinoatrial node?\"";
+            }
+            else if (input.includes("purkinje fiber")) {
+                return "Purkinje fibers are specialized heart muscle fibers that conduct electrical impulses rapidly through the heart ventricles.\n\n💡 Want to know more? Try asking: \"How does the heart work?\"";
+            }
+            else if (input.includes("vena cava")) {
+                return "The vena cava consists of two large veins (superior and inferior) that return deoxygenated blood back to the right side of the heart.\n\n💡 Want to know more? Try asking: \"What is systemic circulation?\"";
+            }
+            else if (input.includes("aorta")) {
+                return "The aorta is the main and largest artery in the body, carrying oxygen-rich blood away from the heart to systemic circulation.\n\n💡 Want to know more? Try asking: \"What is systemic circulation?\"";
+            }
+            else if (input.includes("pulmonary artery")) {
+                return "The pulmonary artery is the unique vessel that carries deoxygenated blood from the heart's right ventricle out to the lungs.\n\n💡 Want to know more? Try asking: \"What is coronary circulation?\"";
+            }
+            else if (input.includes("pulmonary vein")) {
+                return "Pulmonary veins are the vessels that return oxygen-rich blood from the lungs back into the left atrium of the heart.\n\n💡 Want to know more? Try asking: \"How do lungs work?\"";
+            }
+            else if (input.includes("capillary")) {
+                return "Capillaries are the smallest blood vessels where oxygen, nutrients, and waste products are exchanged with body tissues.\n\n💡 Want to know more? Try asking: \"What is interstitial fluid?\"";
+            }
+            else if (input.includes("arteriole")) {
+                return "Arterioles are small branches of arteries that deliver blood directly into capillary networks.\n\n💡 Want to know more? Try asking: \"What is blood pressure?\"";
+            }
+            else if (input.includes("venule")) {
+                return "Venules are tiny veins that collect deoxygenated blood from capillaries and channel it back toward larger veins.\n\n💡 Want to know more? Try asking: \"What is plasma?\"";
+            }
+            else if (input.includes("lymph capillary")) {
+                return "Lymphatic capillaries are microscopic, dead-end vessels that absorb excess tissue fluid to form lymph.\n\n💡 Want to know more? Try asking: \"What is the lymphatic system?\"";
+            }
+            else if (input.includes("thoracic duct")) {
+                return "The thoracic duct is the largest lymphatic vessel in the body, returning lymph fluid back into the bloodstream near the heart.\n\n💡 Want to know more? Try asking: \"What is the lymphatic system?\"";
+            }
+            else if (input.includes("phagocytosis")) {
+                return "Phagocytosis is the cellular process where specialized white blood cells engulf and destroy invading germs and cellular debris.\n\n💡 Want to know more? Try asking: \"What are white blood cells?\"";
+            }
+            else if (input.includes("apoptosis")) {
+                return "Apoptosis is programmed cell death, a clean biological process used to eliminate damaged or unnecessary cells safely.\n\n💡 Want to know more? Try asking: \"What is mitosis?\"";
+            }
+            else if (input.includes("mitosis")) {
+                return "Mitosis is the process of cell division where a single cell divides to produce two identical genetically matched daughter cells.\n\n💡 Want to know more? Try asking: \"What is meiosis?\"";
+            }
+            else if (input.includes("meiosis")) {
+                return "Meiosis is a specialized type of cell division that reduces chromosome number by half, creating egg and sperm cells.\n\n💡 Want to know more? Try asking: \"What is mitosis?\"";
+            }
+            // ----------------------------------------
+
+            // --- Base Topics ---
+            else if (input.includes("banana")) {
+                return "A medium-sized banana contains roughly 105 calories. It's packed with potassium and gives you quick energy, making it a great snack before running!\n\n💡 Want to know more? Try asking: \"How many calories do I burn running?\"";
+            }
+            else if (input.includes("run") || input.includes("running") || input.includes("jog")) {
+                return "Running is an incredible aerobic exercise! Running 1 kilometer typically burns about 65 calories, strengthens your leg muscles, and boosts endurance.\n\n💡 Want to know more? Try asking: \"What is VO2 max?\"";
+            }
+            else if (input.includes("calorie") || input.includes("calories")) {
+                return "Calories measure the amount of energy food gives your body. Your body burns calories constantly to stay alive (resting metabolic rate) and burns even more when you exercise!\n\n💡 Want to know more? Try asking: \"What is BMR (Basal Metabolic Rate)?\"";
+            }
+            else if (input.includes("heart") || input.includes("cardio")) {
+                return "Your heart is a muscular pump about the size of your fist. It beats around 100,000 times a day, sending oxygen-rich blood through your blood vessels to every cell in your body.\n\n💡 Want to know more? Try asking: \"What is the pericardium?\"";
+            }
+            else if (input.includes("lung") || input.includes("lungs") || input.includes("breathe") || input.includes("breathing")) {
+                return "Your lungs pull in oxygen when you inhale and pass it into your bloodstream, while removing carbon dioxide when you exhale. Exercise makes your lungs stronger and more efficient!\n\n💡 Want to know more? Try asking: \"What is vital capacity?\"";
+            }
+            else if (input.includes("liver")) {
+                return "The liver is the largest internal organ and acts as your body's chemical plant. It filters harmful toxins from the blood, stores energy, and helps digest food!\n\n💡 Want to know more? Try asking: \"What is the urea cycle?\"";
+            }
+            else if (input.includes("brain")) {
+                return "Your brain controls everything you do, think, and feel. It uses about 20% of your body's energy and contains roughly 86 billion neurons!\n\n💡 Want to know more? Try asking: \"What is neuroplasticity?\"";
+            }
+            else {
+                return `That's an interesting question about "${input}"! As your Health & Body AI, I'm constantly learning. Try asking me about organs, metabolism, the nervous system, or try clicking one of the quick question chips below!\n\n💡 Want to know more? Try asking: "Who made you?"`;
+            }
+        }
+    </script>
+</body>
+</html>
