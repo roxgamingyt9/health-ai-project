@@ -391,23 +391,39 @@
             sendMessage();
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const inputField = document.getElementById("userInput");
             const userText = inputField.value.trim();
 
-            if (userText === "") return;
+            if (userText === "" || sendMessage.pending) return;
 
             appendMessage(userText, "user-message");
             inputField.value = "";
 
             const typingIndicator = document.getElementById("typingIndicator");
             typingIndicator.style.display = "block";
+            sendMessage.pending = true;
+            inputField.disabled = true;
 
-            setTimeout(() => {
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: userText })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "The request could not be completed.");
+                }
+                appendMessage(data.reply, "bot-message");
+            } catch (error) {
+                appendMessage(`Sorry, I couldn't respond. ${error.message}`, "bot-message");
+            } finally {
                 typingIndicator.style.display = "none";
-                const botReply = generateBotResponse(userText);
-                appendMessage(botReply, "bot-message");
-            }, 600);
+                sendMessage.pending = false;
+                inputField.disabled = false;
+                inputField.focus();
+            }
         }
 
         function handleKeyPress(event) {
@@ -425,10 +441,55 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function resetChat() {
+        async function resetChat() {
             const chatMessages = document.getElementById("chatMessages");
-            chatMessages.innerHTML = `<div class="message bot-message">Hi! I am your Body & Fitness AI. Ask me any question about calories, running, organs, or fitness!</div>`;
+            const resetButton = document.querySelector(".reset-btn");
+            resetButton.disabled = true;
+            try {
+                const response = await fetch("/api/clear", { method: "POST" });
+                if (!response.ok) {
+                    throw new Error("Could not start a new chat.");
+                }
+                chatMessages.innerHTML = "";
+                appendMessage(
+                    "Hi! I am your Body & Fitness AI. Ask me any question about calories, running, organs, or fitness!",
+                    "bot-message"
+                );
+            } catch (error) {
+                appendMessage(error.message, "bot-message");
+            } finally {
+                resetButton.disabled = false;
+            }
         }
+
+        async function restoreHistory() {
+            try {
+                const response = await fetch("/api/history");
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "Could not load chat history.");
+                }
+                if (Array.isArray(data.messages) && data.messages.length > 0) {
+                    document.getElementById("chatMessages").innerHTML = "";
+                    data.messages.forEach((message) => {
+                        if (
+                            message &&
+                            (message.role === "user" || message.role === "assistant") &&
+                            typeof message.content === "string"
+                        ) {
+                            appendMessage(
+                                message.content,
+                                message.role === "user" ? "user-message" : "bot-message"
+                            );
+                        }
+                    });
+                }
+            } catch (error) {
+                appendMessage(`I couldn't restore this conversation. ${error.message}`, "bot-message");
+            }
+        }
+
+        restoreHistory();
 
         function generateBotResponse(input) {
             input = input.toLowerCase();

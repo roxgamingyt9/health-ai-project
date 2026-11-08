@@ -5,7 +5,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request, session
+from flask import Flask, jsonify, request, send_file, session
 
 
 load_dotenv()
@@ -18,19 +18,19 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "").strip()
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 SYSTEM_PROMPT = (
-    "You are NEXORA AI, a helpful, clear, and friendly AI assistant. "
-    "Your name is NEXORA AI. Answer the user's questions accurately and "
-    "use Markdown formatting when it improves readability. If you are unsure "
-    "or lack current information, be transparent instead of inventing facts."
+    "You are Health & Body AI, a helpful and friendly educational assistant "
+    "for health, anatomy, and fitness topics. Give clear, accurate answers, "
+    "and use Markdown when helpful. Do not diagnose or replace advice from a "
+    "qualified healthcare professional. Be transparent when uncertain."
 )
 GENERIC_REPLIES = {
-    "hi": "Hi! How can I help you today?",
-    "hello": "Hello! What can I help you with?",
-    "hey": "Hey! How can I help?",
-    "who are you": "I'm NEXORA AI, your friendly AI assistant.",
-    "what is your name": "I'm NEXORA AI.",
-    "who made you": "I was built to power this NEXORA AI chatbot.",
-    "who created you": "I was built to power this NEXORA AI chatbot.",
+    "hi": "Hi! I'm Health & Body AI. What would you like to learn about?",
+    "hello": "Hello! I'm Health & Body AI. How can I help?",
+    "hey": "Hey! What would you like to know about health or fitness?",
+    "who are you": "I'm Health & Body AI, an educational health and fitness assistant.",
+    "what is your name": "I'm Health & Body AI.",
+    "who made you": "I was created by Sreehari MK as part of the Health & Body AI project.",
+    "who created you": "I was created by Sreehari MK as part of the Health & Body AI project.",
 }
 MAX_MESSAGE_LENGTH = 10_000
 MAX_HISTORY_MESSAGES = 40
@@ -39,7 +39,7 @@ CHAT_HISTORY = {}
 
 @app.get("/")
 def index():
-    return render_template("index.html")
+    return send_file(os.path.join(app.root_path, "index.html"), mimetype="text/html")
 
 
 @app.get("/api/history")
