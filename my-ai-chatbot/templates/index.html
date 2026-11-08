@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#11101a">
+  <title>NEXORA AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#11101a",
+            panel: "#191725",
+            violetglow: "#9b7bff"
+          },
+          fontFamily: {
+            sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+  <style>
+    * { scrollbar-color: #49445c transparent; scrollbar-width: thin; }
+    .message-content p { margin: 0.45rem 0; }
+    .message-content p:first-child { margin-top: 0; }
+    .message-content p:last-child { margin-bottom: 0; }
+    .message-content ul, .message-content ol { margin: 0.6rem 0; padding-left: 1.4rem; }
+    .message-content ul { list-style: disc; }
+    .message-content ol { list-style: decimal; }
+    .message-content a { color: #c4b5fd; text-decoration: underline; }
+    .message-content :not(pre) > code {
+      background: #11101a; border-radius: 0.3rem; padding: 0.12rem 0.35rem;
+      color: #ddd6fe; font-size: 0.9em;
+    }
+    .message-content pre {
+      overflow-x: auto; margin: 0.75rem 0; border: 1px solid #373344;
+      border-radius: 0.65rem; background: #11101a; padding: 0.85rem;
+    }
+    .message-content pre code { color: #e5e1ef; font-size: 0.85rem; }
+    .message-content blockquote {
+      border-left: 2px solid #8b5cf6; margin: 0.65rem 0; padding-left: 0.8rem;
+      color: #c4bfd0;
+    }
+    .dot { animation: pulse 1.2s ease-in-out infinite; }
+    .dot:nth-child(2) { animation-delay: 0.15s; }
+    .dot:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes pulse { 0%, 60%, 100% { opacity: 0.35; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+  </style>
+</head>
+<body class="h-full bg-ink font-sans text-slate-100 antialiased">
+  <div class="mx-auto flex h-full max-w-5xl flex-col px-3 sm:px-6">
+    <header class="flex items-center justify-between border-b border-white/10 py-4 sm:py-5">
+      <a href="/" class="flex items-center gap-3" aria-label="NEXORA AI home">
+        <span class="grid h-10 w-10 place-items-center rounded-xl bg-violet-500/15 text-violet-300 ring-1 ring-violet-400/20">
+          <svg viewBox="0 0 24 24" fill="none" class="h-6 w-6" aria-hidden="true">
+            <path d="M5 18V6l14 12V6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span>
+          <span class="block text-sm font-bold tracking-[0.16em] sm:text-base">NEXORA <span class="text-violet-300">AI</span></span>
+          <span class="block text-xs text-slate-400">Your local AI assistant</span>
+        </span>
+      </a>
+      <button id="clear-button" type="button" class="rounded-lg border border-white/10 px-3 py-2 text-xs font-medium text-slate-300 transition hover:border-violet-400/40 hover:bg-white/5 hover:text-white sm:text-sm">
+        New chat
+      </button>
+    </header>
+
+    <main id="messages" class="flex-1 space-y-6 overflow-y-auto py-6 sm:py-8" aria-live="polite" aria-label="Chat messages">
+      <div id="welcome" class="mx-auto mt-10 max-w-lg text-center sm:mt-16">
+        <div class="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-violet-500/15 text-violet-300 ring-1 ring-violet-400/20">
+          <svg viewBox="0 0 24 24" fill="none" class="h-7 w-7" aria-hidden="true">
+            <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.64 5.64l2.12 2.12m8.48 8.48 2.12 2.12m0-12.72-2.12 2.12m-8.48 8.48-2.12 2.12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">How can I help you today?</h1>
+        <p class="mt-2 text-sm leading-6 text-slate-400">Ask a question, explore an idea, or get help with a task.</p>
+        <p class="mt-4 text-xs text-slate-500">Powered by your local Ollama model</p>
+      </div>
+      <div id="typing" class="hidden items-center gap-3" role="status">
+        <div class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-violet-500/15 text-xs font-semibold text-violet-300">N</div>
+        <div class="flex items-center gap-2 rounded-2xl rounded-tl-md border border-white/5 bg-panel px-4 py-3 text-sm text-slate-300">
+          <span>NEXORA AI is thinking...</span>
+          <span class="flex gap-1" aria-hidden="true"><i class="dot h-1 w-1 rounded-full bg-violet-300"></i><i class="dot h-1 w-1 rounded-full bg-violet-300"></i><i class="dot h-1 w-1 rounded-full bg-violet-300"></i></span>
+        </div>
+      </div>
+    </main>
+
+    <footer class="pb-4 pt-2 sm:pb-6">
+      <form id="chat-form" class="rounded-2xl border border-white/10 bg-panel p-2 shadow-xl shadow-black/20 transition focus-within:border-violet-400/40">
+        <label for="message-input" class="sr-only">Message NEXORA AI</label>
+        <div class="flex items-end gap-2">
+          <textarea id="message-input" rows="1" maxlength="10000" placeholder="Message NEXORA AI..." class="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent px-3 py-3 text-sm text-white outline-none placeholder:text-slate-500" required></textarea>
+          <button id="send-button" type="submit" aria-label="Send message" class="mb-1 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-500 text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-40">
+            <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+              <path d="m5 12 14-7-4 14-3-6-7-1Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="m12 13 7-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+      <p class="mt-2 text-center text-[11px] text-slate-500">NEXORA AI can make mistakes. Check important information.</p>
+    </footer>
+  </div>
+
+  <script>
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("message-input");
+    const messages = document.getElementById("messages");
+    const typing = document.getElementById("typing");
+    const sendButton = document.getElementById("send-button");
+    const welcome = document.getElementById("welcome");
+    const clearButton = document.getElementById("clear-button");
+
+    if (window.marked) {
+      marked.setOptions({ breaks: true, gfm: true });
+    }
+
+    function addMessage(role, text) {
+      welcome.classList.add("hidden");
+      const row = document.createElement("div");
+      row.className = `flex items-start gap-3 ${role === "user" ? "justify-end" : ""}`;
+
+      if (role !== "user") {
+        const avatar = document.createElement("div");
+        avatar.className = "grid h-8 w-8 shrink-0 place-items-center rounded-full bg-violet-500/15 text-xs font-semibold text-violet-300";
+        avatar.textContent = "N";
+        row.appendChild(avatar);
+      }
+
+      const bubble = document.createElement("div");
+      bubble.className = role === "user"
+        ? "max-w-[85%] rounded-2xl rounded-tr-md bg-violet-600 px-4 py-3 text-sm leading-6 text-white sm:max-w-[75%]"
+        : "message-content max-w-[90%] rounded-2xl rounded-tl-md border border-white/5 bg-panel px-4 py-3 text-sm leading-6 text-slate-200 sm:max-w-[80%]";
+
+      if (role === "assistant" && window.marked && window.DOMPurify) {
+        bubble.innerHTML = DOMPurify.sanitize(marked.parse(text));
+      } else {
+        bubble.textContent = text;
+      }
+      row.appendChild(bubble);
+      messages.insertBefore(row, typing);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function resizeInput() {
+      input.style.height = "auto";
+      input.style.height = `${Math.min(input.scrollHeight, 160)}px`;
+    }
+
+    input.addEventListener("input", resizeInput);
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = input.value.trim();
+      if (!message || sendButton.disabled) return;
+
+      addMessage("user", message);
+      input.value = "";
+      resizeInput();
+      sendButton.disabled = true;
+      typing.classList.remove("hidden");
+      typing.classList.add("flex");
+      messages.scrollTop = messages.scrollHeight;
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "The request could not be completed.");
+        addMessage("assistant", data.reply);
+      } catch (error) {
+        addMessage("assistant", `Sorry, I couldn't respond. ${error.message}`);
+      } finally {
+        typing.classList.add("hidden");
+        typing.classList.remove("flex");
+        sendButton.disabled = false;
+        input.focus();
+      }
+    });
+
+    clearButton.addEventListener("click", async () => {
+      clearButton.disabled = true;
+      try {
+        const response = await fetch("/api/clear", { method: "POST" });
+        if (!response.ok) throw new Error("Could not start a new chat.");
+        messages.querySelectorAll(":scope > div:not(#welcome):not(#typing)").forEach((item) => item.remove());
+        welcome.classList.remove("hidden");
+        input.focus();
+      } catch (error) {
+        addMessage("assistant", error.message);
+      } finally {
+        clearButton.disabled = false;
+      }
+    });
+
+    async function restoreHistory() {
+      try {
+        const response = await fetch("/api/history");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load chat history.");
+        if (Array.isArray(data.messages)) {
+          data.messages.forEach((message) => {
+            if (
+              message &&
+              (message.role === "user" || message.role === "assistant") &&
+              typeof message.content === "string"
+            ) {
+              addMessage(message.role, message.content);
+            }
+          });
+        }
+      } catch (error) {
+        addMessage("assistant", `I couldn't restore this conversation. ${error.message}`);
+      }
+    }
+
+    restoreHistory();
+  </script>
+</body>
+</html>
