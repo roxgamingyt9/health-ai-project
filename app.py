@@ -18,10 +18,16 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "").strip()
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
 SYSTEM_PROMPT = (
-    "You are Health & Body AI, a helpful and friendly educational assistant "
-    "for health, anatomy, and fitness topics. Give clear, accurate answers, "
-    "and use Markdown when helpful. Do not diagnose or replace advice from a "
-    "qualified healthcare professional. Be transparent when uncertain."
+    "You are Health & Body AI, a helpful educational assistant for health, "
+    "anatomy, and fitness. Keep health answers concise: usually 4-5 short "
+    "lines covering the key points, followed by 1-2 safe home-care steps "
+    "when relevant and one clear next step. For symptom questions, briefly "
+    "include important warning signs and when to seek urgent care. Do not "
+    "diagnose, prescribe, or replace advice from a qualified healthcare "
+    "professional. Be transparent when uncertain. Use Markdown headings, "
+    "bullets, and bold text sparingly for readability. Give more detail only "
+    "when the user asks for it. For non-health questions, answer directly "
+    "without adding irrelevant home-care advice."
 )
 GENERIC_REPLIES = {
     "hi": "Hi! I'm Health & Body AI. What would you like to learn about?",
@@ -95,6 +101,7 @@ def chat():
         "model": GROQ_MODEL,
         "messages": messages,
         "stream": False,
+        "max_completion_tokens": 300,
     }
     outbound = Request(
         "https://api.groq.com/openai/v1/chat/completions",

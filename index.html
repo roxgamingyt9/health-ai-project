@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health & Body AI - ATL Project</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -86,6 +88,42 @@
             font-size: 14px;
             line-height: 1.4;
             white-space: pre-line;
+        }
+        .bot-message p {
+            margin: 0.4em 0;
+        }
+        .bot-message p:first-child {
+            margin-top: 0;
+        }
+        .bot-message p:last-child {
+            margin-bottom: 0;
+        }
+        .bot-message ul,
+        .bot-message ol {
+            margin: 0.4em 0;
+            padding-left: 1.4em;
+        }
+        .bot-message ul {
+            list-style: disc;
+        }
+        .bot-message ol {
+            list-style: decimal;
+        }
+        .bot-message h1,
+        .bot-message h2,
+        .bot-message h3 {
+            margin: 0.5em 0 0.25em;
+            font-size: 1em;
+        }
+        .bot-message blockquote {
+            margin: 0.5em 0;
+            padding-left: 0.75em;
+            border-left: 3px solid currentColor;
+        }
+        .bot-message code {
+            padding: 0.1em 0.3em;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.08);
         }
         .bot-message {
             background-color: #e3f2fd;
@@ -436,7 +474,15 @@
             const chatMessages = document.getElementById("chatMessages");
             const messageDiv = document.createElement("div");
             messageDiv.className = `message ${className}`;
-            messageDiv.textContent = text;
+            if (
+                className === "bot-message" &&
+                window.marked &&
+                window.DOMPurify
+            ) {
+                messageDiv.innerHTML = DOMPurify.sanitize(marked.parse(text));
+            } else {
+                messageDiv.textContent = text;
+            }
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
