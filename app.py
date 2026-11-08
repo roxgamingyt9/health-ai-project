@@ -16,7 +16,7 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "").strip()
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
 SYSTEM_PROMPT = (
     "You are Health & Body AI, a helpful and friendly educational assistant "
     "for health, anatomy, and fitness topics. Give clear, accurate answers, "
