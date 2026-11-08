@@ -102,6 +102,7 @@ def chat():
         headers={
             "Authorization": f"Bearer {GROQ_API_KEY}",
             "Content-Type": "application/json",
+            "User-Agent": "health-ai-project/1.0",
         },
         method="POST",
     )
